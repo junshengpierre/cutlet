@@ -204,6 +204,8 @@ class Cutlet:
         """
 
         out = []
+        original_words = []
+        current_word = ""
 
         for wi, word in enumerate(words):
             po = out[-1] if out else None
@@ -219,9 +221,12 @@ class Cutlet:
                     po.space = False
                 out.append(Token(word.surface, False))
                 continue
+            
+            current_word += word.surface
 
             # resolve split verbs / adjectives
             roma = self.romaji_word(word)
+            
             if roma and po and po.surface and po.surface[-1] == 'っ':
                 po.surface = po.surface[:-1] + roma[0]
             if word.feature.pos2 == '固有名詞':
@@ -271,6 +276,8 @@ class Cutlet:
 
             # if we get here, it does need a space
             tok.space = True
+            original_words.append(current_word)
+            current_word = ""
 
         # remove any leftover っ
         for tok in out:
@@ -280,7 +287,7 @@ class Cutlet:
         if capitalize and out and out[0].surface:
             ss = out[0].surface
             out[0].surface = ss[0].capitalize() + ss[1:]
-        return out
+        return out, original_words
 
     def romaji(self, text, capitalize=True, title=False):
         """Build a complete string from input text.
@@ -299,9 +306,10 @@ class Cutlet:
         text = normalize_text(text)
         words = self.tagger(text)
 
+        tokens, original_words = self.romaji_tokens(words, capitalize, title)
         tokens = self.romaji_tokens(words, capitalize, title)
         out = ''.join([str(tok) for tok in tokens]).strip()
-        return out
+        return out, original_words
 
     def romaji_word(self, word):
         """Return the romaji for a single word (node)."""

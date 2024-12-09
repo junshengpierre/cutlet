@@ -307,7 +307,6 @@ class Cutlet:
         words = self.tagger(text)
 
         tokens, original_words = self.romaji_tokens(words, capitalize, title)
-        tokens = self.romaji_tokens(words, capitalize, title)
         out = ''.join([str(tok) for tok in tokens]).strip()
         return out, original_words
 
